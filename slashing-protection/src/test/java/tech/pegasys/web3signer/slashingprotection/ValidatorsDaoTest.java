@@ -14,6 +14,9 @@ package tech.pegasys.web3signer.slashingprotection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import tech.pegasys.web3signer.slashingprotection.dao.Validator;
+import tech.pegasys.web3signer.slashingprotection.dao.ValidatorsDao;
+
 import java.util.List;
 
 import org.apache.tuweni.bytes.Bytes;

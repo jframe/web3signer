@@ -12,7 +12,13 @@
  */
 package tech.pegasys.web3signer.slashingprotection;
 
+import tech.pegasys.web3signer.slashingprotection.dao.SignedBlock;
+import tech.pegasys.web3signer.slashingprotection.dao.SignedBlocksDao;
+import tech.pegasys.web3signer.slashingprotection.dao.Validator;
+import tech.pegasys.web3signer.slashingprotection.dao.ValidatorsDao;
+
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt64;
@@ -37,7 +43,38 @@ public class DbSlashingProtection implements SlashingProtection {
   @Override
   public boolean maySignBlock(
       final String publicKey, final Bytes signingRoot, final UInt64 blockSlot) {
-    return true;
+    final Bytes publicKeyBytes = Bytes.fromHexString(publicKey);
+    final List<Validator> validators =
+        jdbi.withExtension(
+            ValidatorsDao.class, dao -> dao.retrieveValidators(List.of(publicKeyBytes)));
+    final Optional<Long> validatorId = validators.stream().findFirst().map(Validator::getId);
+
+    if (validatorId.isEmpty()) {
+      return false;
+    } else {
+      final long id = validatorId.get();
+      return jdbi.withExtension(
+          SignedBlocksDao.class,
+          dao -> {
+            final SignedBlock existingBlock = dao.findExistingBlock(id, blockSlot.toLong());
+            final boolean isValid = checkSignedBlock(signingRoot, existingBlock);
+            if (isValid) {
+              dao.insertBlockProposal(id, blockSlot.toLong(), signingRoot);
+            }
+            return isValid;
+          });
+    }
+  }
+
+  private boolean checkSignedBlock(final Bytes signingRoot, final SignedBlock signedBlock) {
+    if (signedBlock != null) {
+      // same slot and signing_root is allowed for broadcasting previously signed block
+      // otherwise if slot and different signing_root then this is a double block proposal
+      return signedBlock.getSigningRoot().equals(signingRoot);
+    } else {
+      // no existing block exists
+      return true;
+    }
   }
 
   @Override
