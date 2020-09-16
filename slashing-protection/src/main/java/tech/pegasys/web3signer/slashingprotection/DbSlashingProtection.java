@@ -56,27 +56,22 @@ public class DbSlashingProtection implements SlashingProtection {
       return jdbi.withExtension(
           SignedBlocksDao.class,
           dao -> {
-            //            final Optional<SignedBlock> existingBlock = dao.findExistingBlock(id,
-            // blockSlot.toLong());
-            //            final boolean isValid = checkSignedBlock(signingRoot, existingBlock);
-            //            if (isValid) {
-            //              dao.insertBlockProposal(id, blockSlot.toLong(), signingRoot);
-            //            }
-            //            return isValid;
-            return false;
+            final long slot = blockSlot.toLong();
+            final Optional<SignedBlock> existingBlock = dao.findExistingBlock(id, slot);
+            final boolean isValid = checkSignedBlock(signingRoot, existingBlock);
+            if (isValid) {
+              dao.insertBlockProposal(id, slot, signingRoot);
+            }
+            return isValid;
           });
     }
   }
 
-  private boolean checkSignedBlock(final Bytes signingRoot, final SignedBlock signedBlock) {
-    if (signedBlock != null) {
-      // same slot and signing_root is allowed for broadcasting previously signed block
-      // otherwise if slot and different signing_root then this is a double block proposal
-      return signedBlock.getSigningRoot().equals(signingRoot);
-    } else {
-      // no existing block exists
-      return true;
-    }
+  private boolean checkSignedBlock(
+      final Bytes signingRoot, final Optional<SignedBlock> signedBlock) {
+    // same slot and signing_root is allowed for broadcasting previously signed block
+    // otherwise if slot and different signing_root then this is a double block proposal
+    return signedBlock.map(block -> block.getSigningRoot().equals(signingRoot)).orElse(true);
   }
 
   @Override
