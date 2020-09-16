@@ -12,6 +12,8 @@
  */
 package tech.pegasys.web3signer.slashingprotection.dao;
 
+import java.util.Optional;
+
 import org.apache.tuweni.bytes.Bytes;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
@@ -20,10 +22,11 @@ import org.jdbi.v3.sqlobject.transaction.Transaction;
 
 public interface SignedBlocksDao {
 
-  @SqlQuery("SELECT slot, signing_root FROM signed_blocks WHERE validator_id = ? AND slot = ?")
+  @SqlQuery(
+      "SELECT validator_id, slot, signing_root FROM signed_blocks WHERE validator_id = ? AND slot = ?")
   @RegisterBeanMapper(SignedBlock.class)
   @Transaction
-  SignedBlock findExistingBlock(final long validatorId, final long slot);
+  Optional<SignedBlock> findExistingBlock(final long validatorId, final long slot);
 
   @SqlUpdate("INSERT INTO signed_blocks (validator_id, slot, signing_root) VALUES (?, ?, ?)")
   @Transaction

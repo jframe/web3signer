@@ -10,12 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package tech.pegasys.web3signer.slashingprotection;
+package tech.pegasys.web3signer.slashingprotection.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import tech.pegasys.web3signer.slashingprotection.dao.Validator;
-import tech.pegasys.web3signer.slashingprotection.dao.ValidatorsDao;
+import tech.pegasys.web3signer.slashingprotection.BytesArgumentFactory;
+import tech.pegasys.web3signer.slashingprotection.BytesColumnMapper;
 
 import java.util.List;
 

@@ -56,12 +56,14 @@ public class DbSlashingProtection implements SlashingProtection {
       return jdbi.withExtension(
           SignedBlocksDao.class,
           dao -> {
-            final SignedBlock existingBlock = dao.findExistingBlock(id, blockSlot.toLong());
-            final boolean isValid = checkSignedBlock(signingRoot, existingBlock);
-            if (isValid) {
-              dao.insertBlockProposal(id, blockSlot.toLong(), signingRoot);
-            }
-            return isValid;
+            //            final Optional<SignedBlock> existingBlock = dao.findExistingBlock(id,
+            // blockSlot.toLong());
+            //            final boolean isValid = checkSignedBlock(signingRoot, existingBlock);
+            //            if (isValid) {
+            //              dao.insertBlockProposal(id, blockSlot.toLong(), signingRoot);
+            //            }
+            //            return isValid;
+            return false;
           });
     }
   }
