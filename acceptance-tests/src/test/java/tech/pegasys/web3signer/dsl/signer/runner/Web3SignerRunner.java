@@ -15,6 +15,7 @@ package tech.pegasys.web3signer.dsl.signer.runner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static tech.pegasys.web3signer.tests.tls.support.CertificateHelpers.createJksTrustStore;
 
+import tech.pegasys.web3signer.core.config.AzureKeyVaultParameters;
 import tech.pegasys.web3signer.core.config.ClientAuthConstraints;
 import tech.pegasys.web3signer.core.config.TlsOptions;
 import tech.pegasys.web3signer.dsl.signer.SignerConfiguration;
@@ -121,6 +122,18 @@ public abstract class Web3SignerRunner {
       params.add(dataPath.toAbsolutePath().toString());
     }
 
+    if (signerConfig.getAzureKeyVaultParameters().isPresent()) {
+      final AzureKeyVaultParameters azureParams = signerConfig.getAzureKeyVaultParameters().get();
+      params.add("--azure-vault-name");
+      params.add(azureParams.getKeyVaultName());
+      params.add("--azure-client-id");
+      params.add(azureParams.getClientlId());
+      params.add("--azure-client-secret");
+      params.add(azureParams.getClientSecret());
+      params.add("--azure-tenant-id");
+      params.add(azureParams.getTenantId());
+    }
+
     params.addAll(createServerTlsArgs());
 
     params.add(signerConfig.getMode());
@@ -159,7 +172,7 @@ public abstract class Web3SignerRunner {
 
   private Collection<String> createEth2Args() {
     final List<String> params = Lists.newArrayList();
-    params.add("--Xslashing-protection-enabled");
+    params.add("--slashing-protection-enabled");
     params.add(Boolean.toString(signerConfig.isSlashingProtectionEnabled()));
 
     if (signerConfig.isSlashingProtectionEnabled()) {
