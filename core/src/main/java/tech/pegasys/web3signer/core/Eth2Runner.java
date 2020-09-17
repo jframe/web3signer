@@ -58,7 +58,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.services.MetricsSystem;
 import org.jdbi.v3.core.Jdbi;
 
@@ -173,14 +172,6 @@ public class Eth2Runner extends Runner {
 
       signers.addAll(loadAzureSigners(params));
     }
-
-    final List<Bytes> validators =
-        signers.stream()
-            .map(ArtifactSigner::getIdentifier)
-            .map(Bytes::fromHexString)
-            .collect(Collectors.toList());
-    slashingProtection.ifPresent(
-        slashingProtection -> slashingProtection.registerValidators(validators));
 
     final List<Bytes> validators =
         signers.stream()
