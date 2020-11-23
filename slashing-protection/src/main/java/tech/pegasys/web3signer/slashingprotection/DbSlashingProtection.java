@@ -140,6 +140,9 @@ public class DbSlashingProtection implements SlashingProtection {
       final UInt64 targetEpoch,
       final Bytes32 genesisValidatorsRoot) {
     final int validatorId = validatorId(publicKey);
+    if (!checkGvr(genesisValidatorsRoot)) {
+      return false;
+    }
 
     return jdbi.inTransaction(
         READ_COMMITTED,
@@ -155,18 +158,11 @@ public class DbSlashingProtection implements SlashingProtection {
                   signedAttestationsDao,
                   lowWatermarkDao);
 
-          final GenesisValidatorRootValidator gvrValidator =
-              new GenesisValidatorRootValidator(handle, metadataDao);
-
           if (attestationValidator.sourceGreaterThanTargetEpoch()) {
             return false;
           }
 
           lockForValidator(handle, LockType.ATTESTATION, validatorId);
-
-          if (!gvrValidator.checkGenesisValidatorsRootAndInsertIfEmpty(genesisValidatorsRoot)) {
-            return false;
-          }
 
           if (attestationValidator.directlyConflictsWithExistingEntry()
               || attestationValidator.isSurroundedByExistingAttestation()
@@ -183,6 +179,18 @@ public class DbSlashingProtection implements SlashingProtection {
         });
   }
 
+  private boolean checkGvr(final Bytes32 genesisValidatorsRoot) {
+    final boolean checkGvr =
+        jdbi.inTransaction(
+            SERIALIZABLE,
+            h -> {
+              final GenesisValidatorRootValidator gvrValidator =
+                  new GenesisValidatorRootValidator(h, metadataDao);
+              return gvrValidator.checkGenesisValidatorsRootAndInsertIfEmpty(genesisValidatorsRoot);
+            });
+    return checkGvr;
+  }
+
   @Override
   public boolean maySignBlock(
       final Bytes publicKey,
@@ -190,6 +198,9 @@ public class DbSlashingProtection implements SlashingProtection {
       final UInt64 blockSlot,
       final Bytes32 genesisValidatorsRoot) {
     final int validatorId = validatorId(publicKey);
+    if (!checkGvr(genesisValidatorsRoot)) {
+      return false;
+    }
     return jdbi.inTransaction(
         READ_COMMITTED,
         h -> {
@@ -197,14 +208,7 @@ public class DbSlashingProtection implements SlashingProtection {
               new BlockValidator(
                   h, signingRoot, blockSlot, validatorId, signedBlocksDao, lowWatermarkDao);
 
-          final GenesisValidatorRootValidator gvrValidator =
-              new GenesisValidatorRootValidator(h, metadataDao);
-
           lockForValidator(h, LockType.BLOCK, validatorId);
-
-          if (!gvrValidator.checkGenesisValidatorsRootAndInsertIfEmpty(genesisValidatorsRoot)) {
-            return false;
-          }
 
           if (blockValidator.directlyConflictsWithExistingEntry()) {
             return false;

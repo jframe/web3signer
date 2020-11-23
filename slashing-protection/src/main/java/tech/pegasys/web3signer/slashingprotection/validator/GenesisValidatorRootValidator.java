@@ -15,6 +15,7 @@ package tech.pegasys.web3signer.slashingprotection.validator;
 import tech.pegasys.web3signer.slashingprotection.dao.MetadataDao;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +27,7 @@ public class GenesisValidatorRootValidator {
 
   private final Handle handle;
   private final MetadataDao metadataDao;
+  private final AtomicReference<Bytes32> gvr = new AtomicReference<>();
 
   public GenesisValidatorRootValidator(final Handle handle, final MetadataDao metadataDao) {
     this.handle = handle;
@@ -33,7 +35,7 @@ public class GenesisValidatorRootValidator {
   }
 
   public boolean checkGenesisValidatorsRootAndInsertIfEmpty(Bytes32 genesisValidatorsRoot) {
-    final Optional<Bytes32> dbGvr = metadataDao.findGenesisValidatorsRoot(handle);
+    final Optional<Bytes32> dbGvr = gvr();
     final boolean isValidGvr = dbGvr.map(gvr -> gvr.equals(genesisValidatorsRoot)).orElse(true);
     if (!isValidGvr) {
       LOG.warn(
@@ -43,5 +45,16 @@ public class GenesisValidatorRootValidator {
       metadataDao.insertGenesisValidatorsRoot(handle, genesisValidatorsRoot);
     }
     return isValidGvr;
+  }
+
+  private Optional<Bytes32> gvr() {
+    final Optional<Bytes32> cachedGvr = Optional.ofNullable(gvr.get());
+    if (cachedGvr.isEmpty()) {
+      final Optional<Bytes32> dbGvr = metadataDao.findGenesisValidatorsRoot(handle);
+      dbGvr.ifPresent(gvr::set);
+      return dbGvr;
+    } else {
+      return cachedGvr;
+    }
   }
 }
