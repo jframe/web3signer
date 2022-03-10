@@ -15,8 +15,6 @@ package tech.pegasys.web3signer.slashingprotection.dao;
 import org.jdbi.v3.core.Handle;
 
 public class DatabaseVersionDao {
-  public static final int EXPECTED_DATABASE_VERSION = 10;
-  public static final int VALIDATOR_ENABLE_FLAG_VERSION = 10;
 
   public Integer findDatabaseVersion(final Handle handle) {
     try {

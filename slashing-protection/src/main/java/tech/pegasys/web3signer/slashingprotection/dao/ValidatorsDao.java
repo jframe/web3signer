@@ -57,14 +57,6 @@ public class ValidatorsDao {
         .stream();
   }
 
-  public boolean isEnabled(final Handle handle, final int validatorId) {
-    return handle
-        .createQuery("SELECT enabled FROM validators WHERE id = ?")
-        .bind(0, validatorId)
-        .mapTo(Boolean.class)
-        .first();
-  }
-
   public boolean hasSigned(final Handle handle, final int validatorId) {
     return handle
         .createQuery(
