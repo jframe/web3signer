@@ -2,7 +2,7 @@
 
 ## 26.10.1
 ### Features Added
-- Teku libraries updated to 26.10.2, which unschedules the Gloas (Glamsterdam) fork for the Hoodi network (previously epoch 132352, 26 Oct 2026). Required update for the Hoodi network.
+- Unscheduled the Gloas (Glamsterdam) fork for the Hoodi network, which was previously scheduled at epoch 132352 (26 Oct 2026 17:42:48 UTC). Teku libraries updated to 26.10.2. Required update for the Hoodi network.
 
 ### Bugs Fixed
 
